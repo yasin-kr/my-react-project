@@ -1,17 +1,26 @@
-// src/components/App.jsx
-import { Card } from './Product';
+import { Alert } from './Alert';
+import { LoginButton } from './LoginButton';
+import { FollowButton } from './FollowButton';
+import { UserMenu } from './UserMenu';
 
 export default function App() {
   return (
     <>
-      <h1>Modul 1 Ozeti</h1>
-      <Card
-        title="Props"
-        text="Bir bilesene disaridan veri gondermek icin props kullanilir."
-      />
-      <Card title="props.children">
-        <p>Acilis ve kapanis etiketi arasindaki icerik children olarak gelir.</p>
-      </Card>
+      <Alert variant="info" outlined>
+        Would you like to browse our recommended products?
+      </Alert>
+      <Alert variant="error">
+        There was an error during your last transaction
+      </Alert>
+      <Alert variant="success" elevated>
+        Payment received, thank you for your purchase
+      </Alert>
+      <Alert variant="warning" outlined elevated>
+        Please update your profile contact information
+      </Alert>
+      <UserMenu name="Yasin" />
+      <LoginButton />
+      <FollowButton />
     </>
   );
 }

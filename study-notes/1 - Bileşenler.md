@@ -1,8 +1,8 @@
 # Modul 1: Bilesenler
 
-## Bugun Ne Isledik
+## Unite 1: Temel Bilesen Mantigi
 
-Bu modulde React'in bilesen tabanli dusunme sekli, JSX ile arayuz tanimlama, props ile veri gecirme, kosullu render, listeleme, `key`, `props.children`, `main.jsx` uzerinden render, `StrictMode`, SPA mantigi ve `prop-types` konularini ele aldik.
+Bu unite'de React'in bilesen tabanli dusunme sekli, JSX ile arayuz tanimlama, props ile veri gecirme, kosullu render, listeleme, `key`, `props.children`, `main.jsx` uzerinden render, `StrictMode`, SPA mantigi ve `prop-types` konularini ele aldik.
 
 ## 1. Bilesen Mantigi
 
@@ -324,7 +324,7 @@ LMS'te `prop-types` anlatiyor, ancak burada guncel bir not dusmek onemli:
 
 Yani konu kavramsal olarak faydali, fakat yeni React projelerinde davranis eski kaynaklarla birebir ayni olmayabilir.
 
-## Terminoloji
+## Unite 1 Terminoloji
 
 - Component: Arayuzun kucuk ve bagimsiz parcasi
 - JSX: JavaScript icinde HTML benzeri yapi
@@ -340,3 +340,572 @@ Yani konu kavramsal olarak faydali, fakat yeni React projelerinde davranis eski 
 - `children`: Bilesenin acilis ve kapanis etiketi arasindaki icerik
 - StrictMode: Gelistirme sirasinda sorunlari fark etmeye yardim eden arac
 - SPA: Tek bir HTML uzerinden dinamik arayuz guncelleyen uygulama modeli
+
+## Unite 2: Stiller ve Stil Organizasyonu
+
+Bu unite'de inline style, dinamik stiller, vanilla CSS, sinif yapilandirmasi, `clsx`, global namespace problemi, stillerin yeniden kullanimi, CSS Modules, `composes`, stil normalizasyonu ve React Icons konularini ele aldik.
+
+## 1. Gömülü Stilller
+
+React'te inline style, HTML'deki `style=""` mantigina benzer ama string yerine JavaScript object kullanilir.
+
+```jsx
+export const App = () => {
+  return (
+    <p
+      style={{
+        margin: 8,
+        padding: '12px 16px',
+        borderRadius: 4,
+        backgroundColor: 'gray',
+        color: 'white',
+      }}
+    >
+      Please update your email!
+    </p>
+  );
+};
+```
+
+Burada iki adet `{}` goruruz:
+
+- Dis `{}` = JSX icinde JavaScript yazdigimizi belirtir
+- Ic `{}` = stil object'inin kendisidir
+
+Temel kurallar:
+
+- CSS property adlari camelCase yazilir
+- Tek sayisal degerlerde `px` cogu zaman otomatik eklenir
+- Birden fazla deger veya farkli birim varsa string kullanilir
+
+Dipnot:
+
+- `...alertStyles` gibi object icinde kullanilan `...` = spread operatorudur
+- Spread, var olan bir object'in alanlarini yeni object icine yayar
+- Rest ise genelde parametre toplamak veya kalan alanlari ayirmak icin kullanilir
+
+Kucuk fark:
+
+```jsx
+const base = { color: 'white' };
+const next = { ...base, backgroundColor: 'blue' }; // spread
+
+const { color, ...rest } = next; // rest
+```
+
+## 2. Stil Nesnesini Ayri Degiskene Alma
+
+Inline style daha okunabilir olsun diye object ayri bir degiskende tutulabilir.
+
+```jsx
+const alertStyles = {
+  margin: 8,
+  padding: '12px 16px',
+  borderRadius: 4,
+  backgroundColor: 'gray',
+  color: 'white',
+};
+
+export const App = () => {
+  return <p style={alertStyles}>Please update your email!</p>;
+};
+```
+
+Bu yapi ayni stili birden fazla ogeye tekrar uygulamayi kolaylastirir.
+
+## 3. Inline Style ile Ayrı `Alert` Bileseni
+
+Stili daha moduler hale getirmek icin ayri bir bilesen yazilabilir.
+
+```jsx
+const alertStyles = {
+  margin: 8,
+  padding: '12px 16px',
+  borderRadius: 4,
+  backgroundColor: 'gray',
+  color: 'white',
+};
+
+export const Alert = ({ children }) => {
+  return <p style={alertStyles}>{children}</p>;
+};
+```
+
+Kullanim:
+
+```jsx
+<Alert>Please update your email!</Alert>
+<Alert>Payment received, thank you for your purchase!</Alert>
+```
+
+Bu yapi:
+
+- reusable olur
+- kod tekrarini azaltir
+- `children` kullanimini pratiklestirir
+
+## 4. Dinamik Stilller
+
+Bir veya daha fazla stil ozelligi prop'lara bagli olarak degistirilebilir.
+
+```jsx
+const alertStyles = {
+  margin: 8,
+  padding: '12px 16px',
+  borderRadius: 4,
+  color: 'white',
+};
+
+const getBgColor = (variant) => {
+  switch (variant) {
+    case 'info':
+      return 'blue';
+    case 'success':
+      return 'green';
+    case 'error':
+      return 'red';
+    case 'warning':
+      return 'orange';
+    default:
+      throw new Error(`Unsupported variant prop value - ${variant}`);
+  }
+};
+
+export const Alert = ({ variant, children }) => {
+  return (
+    <p
+      style={{
+        ...alertStyles,
+        backgroundColor: getBgColor(variant),
+      }}
+    >
+      {children}
+    </p>
+  );
+};
+```
+
+Onemli notlar:
+
+- `variant` React'e ozel bir kelime degil, normal bir prop adidir
+- `...alertStyles` burada `spread` operatorudur, `rest` degil
+- Sonradan yazilan `backgroundColor`, ayni isimli eski degeri ezer
+
+## 5. Inline Style Ne Zaman Kullanilir
+
+Inline style kucuk orneklerde pratik olabilir ama ana stil yontemi olarak onerilmez.
+
+Neden:
+
+- pseudo-class ve media query gibi guclu CSS ozelliklerini dogrudan desteklemez
+- buyuk projede bakimi zorlasir
+- stil tekrarini artirabilir
+- CSS tooling ekosisteminden daha az faydalanir
+
+En uygun kullanim:
+
+- dinamik olarak hesaplanan tekil degerler
+- JavaScript ile anlik degisen width, color, backgroundImage gibi alanlar
+
+Kucuk karsilastirma:
+
+| Durum | Inline style uygun mu? | Neden |
+| --- | --- | --- |
+| Dinamik renk veya width hesabi | Evet | Deger JavaScript ile anlik hesaplanir |
+| `:hover`, `:focus`, media query ihtiyaci | Hayir | Inline style bu CSS guclerini dogrudan sunmaz |
+| Buyuk sayfa genel stil duzeni | Hayir | Bakim ve tekrar maliyeti artar |
+| Tek bir ogeye ozel kisa stil | Evet | Kucuk durumda pratik olabilir |
+
+## 6. Vanilla CSS
+
+Vanilla CSS, normal `.css` dosyasi kullanarak stilleri ayri dosyada tutma yontemidir.
+
+```css
+/* Alert.css */
+.alert {
+  margin: 8px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background-color: gray;
+  color: white;
+}
+```
+
+Bu CSS dosyasi bilesen icinde import edilir:
+
+```jsx
+import './Alert.css';
+
+export const Alert = ({ children }) => {
+  return <p className="alert">{children}</p>;
+};
+```
+
+Kisa not:
+
+- HTML'deki `class` yerine JSX'te `className` kullanilir
+- Vite gibi araclar CSS'i build surecine dahil eder
+- CSS minify edilir ve uyumluluk araclari devreye girebilir
+
+Mini not:
+
+- Autoprefixer, bazi CSS ozelliklerine tarayici uyumlulugu icin gerekli prefixleri otomatik ekleyen aractir
+- Polyfill mantigi ise, eski tarayicilarda eksik modern ozellikler icin destek katmani saglamayi ifade eder
+- Bu araclar sayesinde modern CSS yazarken uyumluluk isi daha yonetilebilir hale gelir
+
+## 7. Sınıf Yapilandirmasi
+
+Variant mantigi bu kez CSS siniflariyla kurulur.
+
+```css
+.alert {
+  margin: 8px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  color: white;
+}
+
+.alert.info {
+  background-color: blue;
+}
+
+.alert.success {
+  background-color: green;
+}
+
+.alert.error {
+  background-color: red;
+}
+
+.alert.warning {
+  background-color: orange;
+}
+```
+
+JSX tarafinda birden fazla class bir dizi ile olusturulabilir:
+
+```jsx
+const Alert = ({ variant, children }) => {
+  const classNames = ['alert', variant];
+
+  return <p className={classNames.join(' ')}>{children}</p>;
+};
+```
+
+Bu yapi ornegin `variant="success"` icin su stringi uretir:
+
+```jsx
+'alert success'
+```
+
+## 8. Boolean Prop ile Ek Siniflar
+
+`outlined` ve `elevated` gibi prop'lar boolean olarak kullanilabilir.
+
+```jsx
+const Alert = ({ variant, outlined, elevated, children }) => {
+  const classNames = ['alert', variant];
+
+  if (outlined) {
+    classNames.push('is-outlined');
+  }
+
+  if (elevated) {
+    classNames.push('is-elevated');
+  }
+
+  return <p className={classNames.join(' ')}>{children}</p>;
+};
+```
+
+JSX'te sadece prop adini yazmak, onu `true` yapmak demektir:
+
+```jsx
+<Alert variant="warning" outlined elevated>
+  Please update your profile contact information
+</Alert>
+```
+
+## 9. `clsx` Kutuphanesi
+
+`clsx`, dinamik `className` uretimini sade ve okunur hale getiren bir yardimci kutuphanedir.
+
+```jsx
+import clsx from 'clsx';
+
+const Alert = ({ variant, outlined, elevated, children }) => {
+  return (
+    <p
+      className={clsx('alert', variant, {
+        'is-outlined': outlined,
+        'is-elevated': elevated,
+      })}
+    >
+      {children}
+    </p>
+  );
+};
+```
+
+Ne saglar:
+
+- `if`, `push`, `filter`, `join` tekrarini azaltir
+- truthy olan class adaylarini birlestirir
+- object yazimi ile `key = class`, `value = kosul` mantigi kurar
+
+## 10. Küresel Isim Alani Problemi
+
+Vanilla CSS'te dosyayi sadece ilgili bilesen icinde import etmek, onu otomatik olarak sadece o bilesene ozel yapmaz.
+
+Ornek:
+
+```css
+/* FirstComponent.css */
+.text {
+  color: red;
+}
+
+/* SecondComponent.css */
+.text {
+  color: blue;
+}
+```
+
+Bu iki sinif ayni global alanda yasadigi icin cakisabilir.
+
+Bu sorunun sonuclari:
+
+- zayif olceklendirilebilirlik
+- naming convention ihtiyaci
+- stil cakismaalari
+- buyuk projede bakim zorlugu
+
+## 11. Stillerin Yeniden Kullanimi
+
+Farkli bilesenlerde ayni class'i tekrar tekrar kullanmak yerine ortak bir bilesen olusturmak daha iyidir.
+
+```jsx
+const Button = ({ variant, children }) => {
+  return <button className={clsx('button', variant)}>{children}</button>;
+};
+
+const LoginButton = () => {
+  return <Button variant="primary">Login</Button>;
+};
+
+const FollowButton = () => {
+  return <Button variant="secondary">Follow</Button>;
+};
+```
+
+Buradaki fikir:
+
+- `Button` = ortak stil ve ortak gorunum mantigi
+- `LoginButton` / `FollowButton` = daha ozel, anlamsal bilesenler
+
+Bu, class tekrarindan daha moduler bir yaklasimdir.
+
+## 12. CSS Modules
+
+CSS Modules, `.module.css` dosyalari ile calisir ve class adlarini build sirasinda benzersiz hale getirir.
+
+```css
+/* Alert.module.css */
+.alert {
+  margin: 8px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background-color: gray;
+  color: white;
+}
+```
+
+JSX tarafinda import edilen sey bir esleme nesnesi gibi kullanilir:
+
+```jsx
+import css from './Alert.module.css';
+
+export const Alert = ({ children }) => {
+  return <p className={css.alert}>{children}</p>;
+};
+```
+
+Burada:
+
+- `css.alert` = yazdigimiz `alert` sinifinin uretilmis benzersiz karsiligi
+- bu sayede farkli dosyalarda ayni class adi kullanilsa bile cakismaz
+
+`css.alert` dot notation, `css[variant]` ise bracket notation kullanimidir.
+
+Mini ornek:
+
+```jsx
+console.log(css.alert); // dot notation
+
+const key = 'success';
+console.log(css[key]); // bracket notation
+```
+
+Kisa mantik:
+
+- Dot notation sabit property adlarinda kullanilir
+- Bracket notation degiskenle gelen veya dinamik property adlarinda kullanilir
+
+## 13. `composes` Ozelligi
+
+`composes`, bir CSS Module sinifinin baska bir sinifin stillerini devralmasini saglar.
+
+```css
+.alert {
+  margin: 8px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  background-color: gray;
+  color: white;
+}
+
+.success {
+  composes: alert;
+  background-color: green;
+}
+```
+
+Anlam:
+
+- `.success`, `.alert` stillerini de alsin
+- sonra kendi `background-color` degerini uygulasin
+
+Bu sayede JSX tarafinda temel class ile varyant class'i ayrica birlestirmek zorunda kalmayabiliriz:
+
+```jsx
+import css from './Alert.module.css';
+
+const Alert = ({ variant, children }) => {
+  return <p className={css[variant]}>{children}</p>;
+};
+```
+
+## 14. CSS Modules + `clsx`
+
+`composes` ile temel stiller varyantlara tasinabilir, `clsx` ile de opsiyonel class'lar eklenebilir.
+
+```jsx
+import clsx from 'clsx';
+import css from './Alert.module.css';
+
+const Alert = ({ variant, outlined, elevated, children }) => {
+  return (
+    <p
+      className={clsx(css[variant], {
+        [css.isOutlined]: outlined,
+        [css.isElevated]: elevated,
+      })}
+    >
+      {children}
+    </p>
+  );
+};
+```
+
+Burada:
+
+- `css[variant]` = varyant class'i
+- `[css.isOutlined]: outlined` = `outlined` true ise ilgili class eklenir
+- camelCase sinif adlari, `css.isOutlined` gibi daha rahat erisim saglar
+
+## 15. Stil Normalizasyonu
+
+Tarayicilar HTML etiketlerini farkli varsayilan stillerle gosterebilir. Bunu dengelemek icin normalizasyon yapilir.
+
+LMS'te onerilen paket:
+
+```bash
+npm install modern-normalize
+```
+
+Sonra `main.jsx` icinde global olarak import edilir:
+
+```jsx
+import 'modern-normalize';
+import './index.css';
+```
+
+Bu import, uygulamanin giris noktasinda oldugu icin tum proje agacini etkiler.
+
+Ek olarak `index.css` icinde temel global kurallar tanimlanabilir:
+
+```css
+body {
+  font-family: sans-serif;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+```
+
+## 16. React Icons
+
+`react-icons`, farkli ikon setlerini React bileseni gibi kullanmamizi saglar.
+
+Kurulum:
+
+```bash
+npm install react-icons
+```
+
+Kullanim:
+
+```jsx
+import { HiUser } from 'react-icons/hi';
+
+const UserMenu = ({ name }) => {
+  return (
+    <div>
+      <p>
+        <HiUser className="my-icon" size={24} /> {name}
+      </p>
+    </div>
+  );
+};
+```
+
+Notlar:
+
+- Ikonlar React bileseni gibi kullanilir
+- `className` ile CSS verilebilir
+- `size={24}` ikonu 24px yapar
+- renk cogu zaman `color` ile kontrol edilir
+
+## Unite 2 Terminoloji
+
+- Inline style: Stilin JSX icinde object olarak yazilmasi
+- Spread operator (`...`): Bir object'in alanlarini yeni object icine yayma
+- Vanilla CSS: Normal `.css` dosyasi ile stil verme yontemi
+- `className`: JSX'te CSS sinifi vermek icin kullanilan ozellik
+- Boolean prop: `true`, `false` veya `undefined` mantigiyla calisan prop
+- `clsx`: Dinamik className string'i ureten yardimci kutuphane
+- Global namespace: Tum class adlarinin ayni global alani paylasmasi
+- CSS Modules: Class adlarini benzersiz hale getiren build tabanli sistem
+- `composes`: Bir CSS Module sinifinin diger bir sinifi icine almasi
+- Normalization: Tarayicilar arasi varsayilan stil farklarini dengeleme
+- `modern-normalize`: Stil normalizasyonu icin kullanilan kutuphane
+- React Icons: Ikonlari React bileseni gibi kullanmaya yarayan kutuphane
