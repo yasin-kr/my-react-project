@@ -1,0 +1,22 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  max-width: 320px;
+  padding: 2px;
+  border: 2px solid green;
+}
+
+.field {
+  margin-bottom: 5px;
+}
+
+.field:hover {
+  border: 2px solid rgb(112, 10, 10);
+  outline: none;
+}
+
+.btn {
+  background-color: blanchedalmond;
+}

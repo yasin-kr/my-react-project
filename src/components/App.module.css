@@ -1,0 +1,23 @@
+.nav {
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #ddd;
+}
+
+.link {
+  color: #1f2937;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.active {
+  color: #0b63ce;
+  text-decoration: underline;
+}
+
+.subNav {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
